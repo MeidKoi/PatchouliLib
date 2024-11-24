@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject NavigationManager Navigation
+@using Models
 
 @code {
 	protected override void OnInitialized()
@@ -88,69 +89,40 @@
 					</div>
 				</div>
 				<div class="row gx-5">
-					<div class="col-lg-4 mb-5">
-						<div class="card h-100 shadow border-0" style="background-color: #3a3a52;">
-							<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="card-img-top" src="https://example.com/manga1.jpg" alt="Manga 1" />
-							<div class="card-body p-4">
-								<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">Новинка</div>
-								<a class="text-decoration-none link-dark stretched-link" href="#!"><h5 class="card-title mb-3 text-white">Токийский гуль: Реинкарнация</h5></a>
-								<p class="card-text mb-0 text-white-50">Продолжение истории о людях, ставших гулями.</p>
-							</div>
-							<div class="card-footer p-4 pt-0 bg-transparent border-top-0">
-								<div class="d-flex align-items-end justify-content-between">
-									<div class="d-flex align-items-center">
-										<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="rounded-circle me-3" width="40px" height="40px" src="https://example.com/author1.jpg" alt="Author 1" />
-										<div class="small">
-											<div class="fw-bold text-white">Сотрудник 1</div>
-											<div class="text-muted">October 1, 2023 &middot; 5 min read</div>
+					@if (isPopularLoading){
+						<div style="display: flex; justify-content: center; align-items: center; flex-direction: column; min-width:max-content;">
+							<img style="width: 300px; " src="https://media.tenor.com/d5ixyq-Q5XAAAAAj/2hu-touhou.gif">
+							<span style="color: white; font-size: 60px;">Грузимся... </span>  
+       					</div>
+					}
+					else{
+						foreach (MaterialInfo material in latestMaterial){
+							<div class="col-lg-4 mb-5">
+								<div class="card h-100 shadow border-0" style="background-color: #3a3a52;">
+									<img onerror="this.onerror=null; this.src='./images/where.gif'" class="card-img-top" src="@material.FileIcon" alt="@material.FileIcon" />
+									<div class="card-body p-4">
+										<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">@material.Categories</div>
+										<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">@material.Type</div>
+										<a class="text-decoration-none link-dark stretched-link" href="#!"><h5 class="card-title mb-3 text-white">@material.Name</h5></a>
+										<p class="card-text mb-0 text-white-50">@material.Description</p>
+									</div>
+									<!--
+									<div class="card-footer p-4 pt-0 bg-transparent border-top-0">
+										<div class="d-flex align-items-end justify-content-between">
+											<div class="d-flex align-items-center">
+												<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="rounded-circle me-3" width="40px" height="40px" src="https://example.com/author1.jpg" alt="Author 1" />
+												<div class="small">
+													<div class="fw-bold text-white">Сотрудник 1</div>
+													<div class="text-muted">October 1, 2023 &middot; 5 min read</div>
+												</div>
+											</div>
 										</div>
 									</div>
+									 -->
 								</div>
 							</div>
-						</div>
-					</div>
-					<div class="col-lg-4 mb-5">
-						<div class="card h-100 shadow border-0" style="background-color: #3a3a52;">
-							<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="card-img-top" src="https://example.com/manga2.jpg" alt="Manga 2" />
-							<div class="card-body p-4">
-								<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">Новинка</div>
-								<a class="text-decoration-none link-dark stretched-link" href="#!"><h5 class="card-title mb-3 text-white">Моя геройская академия: Восстание</h5></a>
-								<p class="card-text mb-0 text-white-50">Продолжение истории о героях и злодеях.</p>
-							</div>
-							<div class="card-footer p-4 pt-0 bg-transparent border-top-0">
-								<div class="d-flex align-items-end justify-content-between">
-									<div class="d-flex align-items-center">
-										<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="rounded-circle me-3" width="40px" height="40px" src="https://example.com/author2.jpg" alt="Author 2" />
-										<div class="small">
-											<div class="fw-bold text-white">Сотрудник 2</div>
-											<div class="text-muted">September 25, 2023 &middot; 4 min read</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-lg-4 mb-5">
-						<div class="card h-100 shadow border-0" style="background-color: #3a3a52;">
-							<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="card-img-top" src="https://example.com/manga3.jpg" alt="Manga 3" />
-							<div class="card-body p-4">
-								<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">Новинка</div>
-								<a class="text-decoration-none link-dark stretched-link" href="#!"><h5 class="card-title mb-3 text-white">Атака титанов: Последний выстрел</h5></a>
-								<p class="card-text mb-0 text-white-50">Финальная битва против титанов.</p>
-							</div>
-							<div class="card-footer p-4 pt-0 bg-transparent border-top-0">
-								<div class="d-flex align-items-end justify-content-between">
-									<div class="d-flex align-items-center">
-										<img  onerror="this.onerror=null; this.src='./images/where.gif'" class="rounded-circle me-3" width="40px" height="40px" src="https://example.com/author3.jpg" alt="Author 3" />
-										<div class="small">
-											<div class="fw-bold text-white">Сотрудник 3</div>
-											<div class="text-muted">September 30, 2023 &middot; 6 min read</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+						}
+					}		
 				</div>
 				<!-- Call to action-->
 				<aside class="rounded-3 p-4 p-sm-5 mt-5" style="background-color: #3a3a52;">
@@ -191,3 +163,107 @@
 	<!-- Core theme JS-->
 	<script src="js/scripts.js"></script>
 </body>
+
+@code{
+	public class MaterialInfo{
+		public string Name {get; set;} = null!;
+		public string Description {get; set;} = null!;
+		public string Author {get; set;} = null!;
+		public string Categories {get; set;} = null!;
+		public string Type {get;set;} = null!;
+		public string FileIcon {get; set;} = null!; 
+	}
+
+	private class Author{
+		public int Id {get; set;}
+		public string Name {get;set;} = null!;
+	}
+
+	private string GetCategory(int categoryId){
+		switch (categoryId){
+			//Начало с 2, потому что 1 выделена для default
+			default:
+				return "Manga";
+				//break;
+			case 2:
+				return "Manhua";
+				//break;
+			case 3:
+				return "Manhwa";
+				//break;
+			case 4:
+				return "Comics";
+				//break;
+		}
+	}
+
+		private string GetAuthorStatus(int authorStatusId){
+		switch (authorStatusId){
+			default:
+				return "Ongoing";
+				//break;
+			//Начало с 2, потому что 1 выделена для default
+			case 2:
+				return "Completed";
+				//break;
+			case 3:
+				return "Stopped";
+				//break;
+			case 4:
+				return "Discontinued";
+				//break;
+		}
+	}
+
+	public List<Material> latestMaterialData;
+	public List<MaterialInfo> latestMaterial;
+	public bool isPopularLoading = false;
+
+
+
+	protected override async Task OnInitializedAsync(){
+		isPopularLoading = true;
+		HttpClient client = new HttpClient();
+		client.BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run");
+		HttpResponseMessage responseGetMaterial = await client.GetAsync($"/api/Material");
+		if (responseGetMaterial.IsSuccessStatusCode){
+			latestMaterialData = await responseGetMaterial.Content.ReadFromJsonAsync<List<Material>>() ?? new List<Material>();
+			latestMaterial = new List<MaterialInfo>();
+			Console.WriteLine(responseGetMaterial.StatusCode.ToString());
+
+			if (latestMaterialData is null || latestMaterialData.Count == 0){
+				Console.WriteLine("Not found material");
+				return;
+			}
+
+			foreach (Material data in latestMaterialData){
+				MaterialInfo info = new MaterialInfo();
+				info.Name = data.NameMaterial;
+				info.Description = data.DescriptionMaterial;
+				//Категории и типы - локально
+				info.Categories = GetCategory(data.IdCategory);
+				info.Type = GetAuthorStatus(data.IdAuthorStatus);
+				//Автора можно вытягивать
+				var responseGetAuthorName = await client.GetAsync($"/api/Author/{data.IdAuthor}");
+
+				if (responseGetAuthorName.IsSuccessStatusCode){
+					info.Author = (await responseGetAuthorName.Content.ReadFromJsonAsync<Author>()).Name ?? "No author name";
+				}
+				else {
+					info.Author = "No author name";
+				}
+
+				var responseGetFileIcon = await client.GetAsync($"/api/File/{data.IdAuthor}");
+
+				if (responseGetFileIcon.IsSuccessStatusCode){
+					info.FileIcon = (await responseGetFileIcon.Content.ReadFromJsonAsync<Models.File>()).PathFile ?? "noFilePath";
+				}
+				
+				latestMaterial.Add(info);
+			}
+			Console.WriteLine("All materials add");
+		}
+		isPopularLoading = false;
+	}
+
+}
