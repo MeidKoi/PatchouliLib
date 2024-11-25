@@ -83,7 +83,7 @@
 				<div class="row gx-5 justify-content-center">
 					<div class="col-lg-10 col-xl-7">
 						<div class="text-center">
-							<h2 class="fw-bolder text-white">Новые релизы</h2>
+							<h2 class="fw-bolder text-white">Новое на сайте!</h2>
 							<p class="lead fw-normal text-white-50 mb-5">Будьте в курсе последних глав!</p>
 						</div>
 					</div>
@@ -99,11 +99,13 @@
 						foreach (MaterialInfo material in latestMaterial){
 							<div class="col-lg-4 mb-5">
 								<div class="card h-100 shadow border-0" style="background-color: #3a3a52;">
-									<img onerror="this.onerror=null; this.src='./images/where.gif'" class="card-img-top" src="@material.FileIcon" alt="@material.FileIcon" />
+									<img onerror="this.onerror=null; this.src='./images/where.gif'" style="height: 500px;" class="card-img-top" src="@material.FileIcon" alt="Пачуля не поделилась(" />
 									<div class="card-body p-4">
 										<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">@material.Categories</div>
 										<div class="badge bg-primary bg-gradient rounded-pill mb-2" style="background-color: #6a5acd;">@material.Type</div>
 										<a class="text-decoration-none link-dark stretched-link" href="#!"><h5 class="card-title mb-3 text-white">@material.Name</h5></a>
+										<p class="card-text mb-0 text-white-50">Автор: @material.Author</p>
+										<p/>
 										<p class="card-text mb-0 text-white-50">@material.Description</p>
 									</div>
 									<!--
@@ -175,8 +177,8 @@
 	}
 
 	private class Author{
-		public int Id {get; set;}
-		public string Name {get;set;} = null!;
+		public int IdAuthor {get; set;}
+		public string NameAuthor {get;set;} = null!;
 	}
 
 	private string GetCategory(int categoryId){
@@ -218,52 +220,43 @@
 	public List<Material> latestMaterialData;
 	public List<MaterialInfo> latestMaterial;
 	public bool isPopularLoading = false;
-
-
-
 	protected override async Task OnInitializedAsync(){
-		isPopularLoading = true;
-		HttpClient client = new HttpClient();
-		client.BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run");
-		HttpResponseMessage responseGetMaterial = await client.GetAsync($"/api/Material");
-		if (responseGetMaterial.IsSuccessStatusCode){
-			latestMaterialData = await responseGetMaterial.Content.ReadFromJsonAsync<List<Material>>() ?? new List<Material>();
-			latestMaterial = new List<MaterialInfo>();
-			Console.WriteLine(responseGetMaterial.StatusCode.ToString());
+		try{
+			isPopularLoading = true;
+			HttpClient client = new HttpClient();
+			client.BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run");
+			HttpResponseMessage responseGetMaterial = await client.GetAsync($"/api/Material");
+			if (responseGetMaterial.IsSuccessStatusCode){
+				latestMaterialData = await responseGetMaterial.Content.ReadFromJsonAsync<List<Material>>() ?? new List<Material>();
+				latestMaterial = new List<MaterialInfo>();
+				Console.WriteLine(responseGetMaterial.StatusCode.ToString());
 
-			if (latestMaterialData is null || latestMaterialData.Count == 0){
-				Console.WriteLine("Not found material");
-				return;
+				if (latestMaterialData is null || latestMaterialData.Count == 0){
+					return;
+				}
+
+				foreach (Material data in latestMaterialData.OrderByDescending(lm => lm.LastUpdateTime).Take(3)){
+					MaterialInfo info = new MaterialInfo();
+					info.Name = data.NameMaterial;
+					info.Description = data.DescriptionMaterial;
+					//Категории и типы - локально
+					info.Categories = GetCategory(data.IdCategory);
+					info.Type = GetAuthorStatus(data.IdAuthorStatus);
+					//Автора можно вытягивать
+					info.Author = (await client.GetFromJsonAsync<Author>($"/api/Author/{data.IdAuthor}") ?? new Author(){NameAuthor = "Name not found"}).NameAuthor;
+					//Иконку тоже
+					info.FileIcon = (await client.GetFromJsonAsync<Models.File>($"/api/File/{data.FileIcon}") ?? new Models.File(){PathFile = "noFilePath"}).PathFile;
+					
+					latestMaterial.Add(info);
+				}
 			}
-
-			foreach (Material data in latestMaterialData){
-				MaterialInfo info = new MaterialInfo();
-				info.Name = data.NameMaterial;
-				info.Description = data.DescriptionMaterial;
-				//Категории и типы - локально
-				info.Categories = GetCategory(data.IdCategory);
-				info.Type = GetAuthorStatus(data.IdAuthorStatus);
-				//Автора можно вытягивать
-				var responseGetAuthorName = await client.GetAsync($"/api/Author/{data.IdAuthor}");
-
-				if (responseGetAuthorName.IsSuccessStatusCode){
-					info.Author = (await responseGetAuthorName.Content.ReadFromJsonAsync<Author>()).Name ?? "No author name";
-				}
-				else {
-					info.Author = "No author name";
-				}
-
-				var responseGetFileIcon = await client.GetAsync($"/api/File/{data.IdAuthor}");
-
-				if (responseGetFileIcon.IsSuccessStatusCode){
-					info.FileIcon = (await responseGetFileIcon.Content.ReadFromJsonAsync<Models.File>()).PathFile ?? "noFilePath";
-				}
-				
-				latestMaterial.Add(info);
-			}
-			Console.WriteLine("All materials add");
 		}
-		isPopularLoading = false;
+		catch (Exception ex){
+			Console.WriteLine(ex.Message);
+		}
+		finally{
+			isPopularLoading = false;
+		}
 	}
 
 }
