@@ -218,8 +218,8 @@
 		}
 	}
 
-	public List<Material> latestMaterialData;
-	public List<MaterialInfo> latestMaterial;
+	public List<Material> latestMaterialData = new List<Material>();
+	public List<MaterialInfo> latestMaterial = new List<MaterialInfo>();
 	public bool isPopularLoading = false;
 	protected override async Task OnInitializedAsync(){
 		try{

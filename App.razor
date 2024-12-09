@@ -6,7 +6,12 @@
     <NotFound>
         <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <div style=" background-color: white; display: flex; justify-content: center; align-items: center; flex-direction: column; min-width: max-content; height: 800px; overflow: hidden;">
+                <p role="alert" style="font-size: 200px;">404</p>
+                <p role="alert">Пачуля ничего не нашла на этой странице</p>
+                <p role="alert">Пачуля плачет</p>
+                <lottie-player src="./images/notFound.json" background="white"  speed="2"  style="width: 300px; height: 300px;" loop autoplay></lottie-player>
+            </div>
         </LayoutView>
     </NotFound>
 </Router>
