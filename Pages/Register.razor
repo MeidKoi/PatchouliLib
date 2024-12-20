@@ -1,0 +1,37 @@
+﻿@page "/register"
+@inject NavigationManager Navigation
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
+    <div class="col-md-6" style="width: 50vh;">
+        <div class="card shadow" style="background-color: #3a3a52;">
+            <div class="card-body">
+                <h2 class="card-title text-center text-white">Регистрация</h2>
+                <form>
+                    <div class="mb-3">
+                        <label for="name" class="form-label text-white">Имя</label>
+                        <input type="text" class="form-control" id="name" placeholder="Введите ваше имя">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label text-white">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="Введите ваш email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label text-white">Пароль</label>
+                        <input type="password" class="form-control" id="password" placeholder="Введите ваш пароль">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label text-white">Подтверждение пароля</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите ваш пароль">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" style="background-color: #6a5acd; border-color: #6a5acd;">Зарегистрироваться</button>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <a href="/signin" class="text-white-50">Уже есть аккаунт? Войдите</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
