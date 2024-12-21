@@ -1,0 +1,77 @@
+@page "/verify"
+@using Models
+@inject UserInfo user
+@inject NavigationManager Navigation
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
+    <div class="col-md-6" style="width: 50vh;">
+        <div class="card shadow" style="background-color: #3a3a52;">
+            <div class="card-body">
+                <h2 class="card-title text-center text-white">Подтверждение почты</h2>
+                <div class="mb-3">
+                    <label for="verificationToken" class="form-label text-white">Введите токен подтверждения</label>
+                    <input type="text" class="form-control" id="verificationToken" placeholder="Введите токен" @bind="VerificationToken">
+                </div>
+                <div class="d-grid gap-2">
+                    <button @onclick="VerifyEmail" disabled="@IsButtonDisabled" class="btn btn-primary btn-custom" style="background-color: #6a5acd; border-color: #6a5acd;">
+                        Подтвердить
+                    </button>
+                </div>
+                <div class="text-center mt-3">
+                    <span class="text-white-50">Не получили токен? Чтож, хреново быть тобой</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public string VerificationToken = null!;
+    public bool IsButtonDisabled = false;
+
+    private async Task VerifyEmail()
+    {
+        IsButtonDisabled = true;
+        try
+        {
+            HttpClient client = new HttpClient
+            {
+                BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")
+            };
+
+            var request = new VerifyEmailRequest
+            {
+                Token = VerificationToken
+            };
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", user.JwtToken);
+
+            HttpResponseMessage response = await client.PostAsJsonAsync("Accounts/verify-email", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/profile");
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка подтверждения почты: {errorMessage}");
+            }
+        }
+        finally
+        {
+            IsButtonDisabled = false;
+        }
+    }
+}
+
+<style>
+    .btn-custom {
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .btn-custom:active {
+        background-color: #4a3f7c !important; /* Более темный цвет при нажатии */
+        transform: scale(0.95); /* Небольшое уменьшение кнопки при нажатии */
+    }
+</style>

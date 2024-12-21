@@ -13,8 +13,6 @@ namespace Models{
         public DateTime? DeletedTime { get; set; }
 
 
-        //Поля для JWT
-
         public bool AcceptTerms { get; set; }
         public string? VerificationToken { get; set; }
         public DateTime? Verified { get; set; }
@@ -24,5 +22,14 @@ namespace Models{
         public DateTime? PasswordReset { get; set; }
         //public DateTime Created {get; set;}
         public DateTime? Updated { get; set; }
+    }
+
+    public class UserInfo //to display
+    {
+        public int IdUser { get; set; }
+        public string EmailUser { get; set; } = null!;
+        public string NicknameUser { get; set; } = null!;
+        public int IdRole { get; set; }
+        public string JwtToken {get; set;} = null!;
     }
 }

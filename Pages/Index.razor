@@ -1,6 +1,9 @@
 ﻿@page "/"
 @inject NavigationManager Navigation
 @using Models
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+@inject UserInfo user
 
 @code {
 	protected override void OnInitialized()
@@ -22,7 +25,14 @@
 					<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 						<li class="nav-item"><a class="nav-link text-white" href="manga-list.html">Список манги</a></li>
 						<li class="nav-item"><a class="nav-link text-white" href="/secret">О нас</a></li>
-						<li class="nav-item"><a class="nav-link text-white" href="/signin">Войти</a></li>
+						@if (isUserAuthorized)
+						{
+							<li class="nav-item"><a class="nav-link text-white" href="/profile">Карточка</a></li>
+						}
+						else
+						{
+							<li class="nav-item"><a class="nav-link text-white" href="/signin">Войти</a></li>
+						}
 					</ul>
 				</div>
 			</div>
@@ -220,56 +230,66 @@
 	public List<Material> latestMaterialData = new List<Material>();
 	public List<MaterialInfo> latestMaterial = new List<MaterialInfo>();
 	public bool isPopularLoading = false;
+	public bool isUserAuthorized = false;
 	protected override async Task OnInitializedAsync()
 	{
-    try
-    {
-        isPopularLoading = true;
+		try
+		{
+			var options = new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true // Игнорировать регистр
+			};
 
-        // Используем один экземпляр HttpClient
-        HttpClient client = new HttpClient
-        {
-            BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run")
-        };
-
-        // Получаем данные материалов
-        HttpResponseMessage responseGetMaterial = await client.GetAsync("/api/Material");
-        if (responseGetMaterial.IsSuccessStatusCode)
-        {
-            var latestMaterialData = await responseGetMaterial.Content.ReadFromJsonAsync<List<Material>>() ?? new List<Material>();
-            latestMaterial = new List<MaterialInfo>();
-
-            if (latestMaterialData is null || latestMaterialData.Count == 0)
-            {
-                return;
-            }
-
-            var tasks = latestMaterialData.OrderByDescending(lm => lm.LastUpdateTime).Take(3).Select(async data =>
-            {
-                var info = new MaterialInfo
-                {
-                    Name = data.NameMaterial,
-                    Description = data.DescriptionMaterial,
-                    Categories = GetCategory(data.IdCategory),
-                    Type = GetAuthorStatus(data.IdAuthorStatus)
-                };
-
-                var authorTask = client.GetFromJsonAsync<Author>($"/api/Author/{data.IdAuthor}");
-                var fileTask = client.GetFromJsonAsync<Models.File>($"/api/File/{data.FileIcon}");
-
-                await Task.WhenAll(authorTask, fileTask);
-
-                info.Author = (await authorTask ?? new Author { NameAuthor = "Name not found" }).NameAuthor;
-                info.FileIcon = (await fileTask ?? new Models.File { PathFile = "noFilePath" }).PathFile;
-
-                return info;
-            });
-
-            latestMaterial.AddRange(await Task.WhenAll(tasks));
-
-
+			var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "UserInfo");
+			if (!string.IsNullOrEmpty(json))
+			{
+				user = JsonSerializer.Deserialize<UserInfo>(json, options);
+				isUserAuthorized = true;
+			}
 			
-        }
+			isPopularLoading = true;
+
+			// Используем один экземпляр HttpClient
+			HttpClient client = new HttpClient
+			{
+				BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run")
+			};
+
+			// Получаем данные материалов
+			HttpResponseMessage responseGetMaterial = await client.GetAsync("/api/Material");
+			if (responseGetMaterial.IsSuccessStatusCode)
+			{
+				var latestMaterialData = await responseGetMaterial.Content.ReadFromJsonAsync<List<Material>>() ?? new List<Material>();
+				latestMaterial = new List<MaterialInfo>();
+
+				if (latestMaterialData is null || latestMaterialData.Count == 0)
+				{
+					return;
+				}
+
+				var tasks = latestMaterialData.OrderByDescending(lm => lm.LastUpdateTime).Take(3).Select(async data =>
+				{
+					var info = new MaterialInfo
+					{
+						Name = data.NameMaterial,
+						Description = data.DescriptionMaterial,
+						Categories = GetCategory(data.IdCategory),
+						Type = GetAuthorStatus(data.IdAuthorStatus)
+					};
+
+					var authorTask = client.GetFromJsonAsync<Author>($"/api/Author/{data.IdAuthor}");
+					var fileTask = client.GetFromJsonAsync<Models.File>($"/api/File/{data.FileIcon}");
+
+					await Task.WhenAll(authorTask, fileTask);
+
+					info.Author = (await authorTask ?? new Author { NameAuthor = "Name not found" }).NameAuthor;
+					info.FileIcon = (await fileTask ?? new Models.File { PathFile = "noFilePath" }).PathFile;
+
+					return info;
+				});
+
+				latestMaterial.AddRange(await Task.WhenAll(tasks));
+			}
     }
     catch (Exception ex)
     {

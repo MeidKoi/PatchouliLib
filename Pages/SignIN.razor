@@ -1,7 +1,7 @@
 ﻿@page "/signin"
 @using Models
 @inject NavigationManager Navigation
-@inject User user
+@inject UserInfo user
 @inject IJSRuntime JSRuntime
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
@@ -22,6 +22,12 @@
                         Войти
                     </button>
                 </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage.Message))
+                {
+                <div class="text-center mt-3">
+                    <span style="color: red;">@ErrorMessage.Message</span>
+                </div>
+                }
                 <div class="text-center mt-3">
                     <a href="/register" class="text-white-50">Нет аккаунта? Зарегистрируйтесь</a>
                 </div>
@@ -34,21 +40,26 @@
     public string Email = null!;
     public string Password = null!;
     public bool IsButtonDisabled = false;
+    public ErrorResponse ErrorMessage = new ErrorResponse();
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
+    }
     private async Task Authenticate()
     {
         IsButtonDisabled = true;
+        ErrorMessage.Message = "";
         try
         {
             HttpClient client = new HttpClient
             {
-                BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")
+                BaseAddress = new Uri("https://localhost:7053/")
             };
             AuthenticateRequest authenticateRequest = new AuthenticateRequest
             {
                 Email = Email,
                 Password = Password
             };
-            Console.WriteLine(authenticateRequest.Email + '\n' + authenticateRequest.Password);
             HttpResponseMessage response = await client.PostAsJsonAsync<AuthenticateRequest>("Accounts/authenticate", authenticateRequest);
             if (response.IsSuccessStatusCode)
             {
@@ -58,18 +69,17 @@
                     user.EmailUser = authenticateResponse.EmailUser;
                     user.IdUser = authenticateResponse.IdUser;
                     user.EmailUser = authenticateResponse.EmailUser;
-                    user.PasswordUser = authenticateResponse.PasswordUser;
                     user.NicknameUser = authenticateResponse.NicknameUser;
                     user.IdRole = authenticateResponse.IdRole;
-                    user.CreatedTime = authenticateResponse.CreatedTime;
-                    user.LastUpdateTime = authenticateResponse.LastUpdateTime;
-                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "JwtToken", authenticateResponse.JwtToken);
+                    user.JwtToken = authenticateResponse.JwtToken;
+                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "UserInfo", System.Text.Json.JsonSerializer.Serialize(user));
                     Navigation.NavigateTo("/profile");
                 }
             }
             else
             {
-                Console.WriteLine("Kill me");
+                ErrorMessage = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                Console.WriteLine(ErrorMessage.Message);
             }
         }
         finally
