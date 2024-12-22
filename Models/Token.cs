@@ -1,28 +1,34 @@
 
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Microsoft.JSInterop;
+using System.Text.Json;
+
 namespace Models
 {
-    public class JwtToken
+    public class TokenRefresher
     {
-        public string id {get; set;}
-        public long nbf {get; set;}
-        public long exp {get; set;}
-        public long iat {get; set;}
-
-        public async Task<string?> RefreshTokenIfNeed(string accessToken)
+        private readonly IJSRuntime _jsRuntime;
+        public TokenRefresher(IJSRuntime jsRuntime)
         {
+            _jsRuntime = jsRuntime;
+        }
+
+        public async Task<string?> NewTokenIfNeeded(string? accessToken)
+        {
+            var decodedToken = await _jsRuntime.InvokeAsync<object>("jwt_decode", new[] {accessToken});
+            var TokenContent = JsonSerializer.Serialize(decodedToken, new JsonSerializerOptions { WriteIndented = true });
+            var Token = JsonSerializer.Deserialize<JwtToken>(TokenContent);
+
             var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var remainingTime = exp - currentTime;
-            if (remainingTime <= 60 * 14) // 60 is const for because seconds
+            var remainingTime = Token.exp - currentTime;
+            if (remainingTime <= 60 * 3) // 60 is const for because seconds
             {
-                HttpClient client = new HttpClient
-                {
-                    BaseAddress = new Uri("https://mnogolib.onrender.com/")
-                };
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                client.DefaultRequestHeaders.Add("Cookie", "refreshToken=yourRefreshTokenValue");
-                HttpResponseMessage response = await client.PostAsync("Accounts/refresh-token", null);
+                var request = new HttpRequestMessage(HttpMethod.Post, "Accounts/refresh-token");
+
+                request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+                HttpResponseMessage response = await new HttpClient{BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")}.SendAsync(request);
+
                 if (response.IsSuccessStatusCode)
                 {
                     return (await response.Content.ReadFromJsonAsync<AuthenticateResponse>()).JwtToken;
@@ -37,5 +43,14 @@ namespace Models
             return accessToken;
         } 
 
+    }
+
+    public class JwtToken
+    {
+        public string? id {get; set;}
+        public long nbf {get; set;}
+        public long exp {get; set;}
+        public long iat {get; set;}
+        
     }
 }

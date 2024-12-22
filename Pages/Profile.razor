@@ -5,6 +5,7 @@
 @using System.Text.Json
 @inject UserInfo user
 @inject IJSRuntime JSRuntime
+@inject TokenRefresher Refresher
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
     <div class="col-md-8">
@@ -79,20 +80,20 @@
         UserEmail = user.EmailUser;
         UserRole = GetRoleName(user.IdRole);
 
-        }
         
-        @* var decodedToken = await JSRuntime.InvokeAsync<object>("jwt_decode", user.JwtToken);
+        
+        //var decodedToken = await JSRuntime.InvokeAsync<object>("jwt_decode", user.JwtToken);
 
-        var TokenContent = System.Text.Json.JsonSerializer.Serialize(decodedToken, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        //var TokenContent = System.Text.Json.JsonSerializer.Serialize(decodedToken, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
-        var Token = System.Text.Json.JsonSerializer.Deserialize<JwtToken>(TokenContent);
+        //var Token = System.Text.Json.JsonSerializer.Deserialize<JwtToken>(TokenContent);
 
         //var refreshToken = await JSRuntime.InvokeAsync<string>("cookieHelper.getCookie", "refreshToken");
         //var refreshToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "refreshToken");
         
         //Console.WriteLine(refreshToken);
 
-        var newJwtToken = await Token.RefreshTokenIfNeed(user.JwtToken);
+        var newJwtToken = await Refresher.NewTokenIfNeeded(user.JwtToken);
 
         if (newJwtToken is null)
         {
@@ -113,7 +114,7 @@
         };
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", user.JwtToken);
         IsVerified = (await client.GetFromJsonAsync<User>($"Accounts/{user.IdUser}")).IsVerified;
-    } *@
+    } 
 
     private async Task Logout()
     {

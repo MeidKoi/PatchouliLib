@@ -54,15 +54,13 @@
         {
             HttpClient client = new HttpClient
             {
-                BaseAddress = new Uri("https://mnogolib.onrender.com"),
+                BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/"),
             };
-
             AuthenticateRequest authenticateRequest = new AuthenticateRequest
             {
                 Email = Email,
                 Password = Password
             };
-
             var request = new HttpRequestMessage(HttpMethod.Post, "Accounts/authenticate");
 
             request.Content = JsonContent.Create(authenticateRequest);
@@ -70,7 +68,6 @@
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
             HttpResponseMessage response = await client.SendAsync(request);
-
             if (response.IsSuccessStatusCode)
             {
                 AuthenticateResponse? authenticateResponse = await response.Content.ReadFromJsonAsync<AuthenticateResponse>();
@@ -89,7 +86,6 @@
             else
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                //Console.WriteLine("Response Content: " + responseContent);
                 try
                 {
                     ErrorMessage = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(responseContent);
