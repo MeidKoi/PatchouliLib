@@ -18,9 +18,10 @@ namespace Models
             {
                 HttpClient client = new HttpClient
                 {
-                    BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")
+                    BaseAddress = new Uri("https://mnogolib.onrender.com/")
                 };
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                client.DefaultRequestHeaders.Add("Cookie", "refreshToken=yourRefreshTokenValue");
                 HttpResponseMessage response = await client.PostAsync("Accounts/refresh-token", null);
                 if (response.IsSuccessStatusCode)
                 {

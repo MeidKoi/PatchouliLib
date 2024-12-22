@@ -78,8 +78,10 @@
         UserName = user.NicknameUser;
         UserEmail = user.EmailUser;
         UserRole = GetRoleName(user.IdRole);
+
+        }
         
-        var decodedToken = await JSRuntime.InvokeAsync<object>("jwt_decode", user.JwtToken);
+        @* var decodedToken = await JSRuntime.InvokeAsync<object>("jwt_decode", user.JwtToken);
 
         var TokenContent = System.Text.Json.JsonSerializer.Serialize(decodedToken, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
@@ -111,7 +113,7 @@
         };
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", user.JwtToken);
         IsVerified = (await client.GetFromJsonAsync<User>($"Accounts/{user.IdUser}")).IsVerified;
-    }
+    } *@
 
     private async Task Logout()
     {
