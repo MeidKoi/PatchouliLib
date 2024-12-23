@@ -14,9 +14,10 @@ namespace Models
             _jsRuntime = jsRuntime;
         }
 
-        public async Task<string?> NewTokenIfNeeded(string? accessToken)
+        public async Task<UserInfo?> NewTokenIfNeeded(UserInfo user)
         {
-            var decodedToken = await _jsRuntime.InvokeAsync<object>("jwt_decode", new[] {accessToken});
+            var newUser = user;
+            var decodedToken = await _jsRuntime.InvokeAsync<object>("jwt_decode", new[] {user.JwtToken});
             var TokenContent = JsonSerializer.Serialize(decodedToken, new JsonSerializerOptions { WriteIndented = true });
             var Token = JsonSerializer.Deserialize<JwtToken>(TokenContent);
 
@@ -24,14 +25,18 @@ namespace Models
             var remainingTime = Token.exp - currentTime;
             if (remainingTime <= 60 * 3) // 60 is const for because seconds
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, "Accounts/refresh-token");
-
-                request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-                HttpResponseMessage response = await new HttpClient{BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")}.SendAsync(request);
-
+                var client = new HttpClient
+                {
+                    BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")
+                };
+                var refreshRequest = new RefreshTokenRequest{ Token = user.RefreshToken };
+                var response = await client.PostAsJsonAsync<RefreshTokenRequest>($"Accounts/refresh-token", refreshRequest);                     
                 if (response.IsSuccessStatusCode)
                 {
-                    return (await response.Content.ReadFromJsonAsync<AuthenticateResponse>()).JwtToken;
+                    var authenticateResponse = await response.Content.ReadFromJsonAsync<AuthenticateResponse>();
+                    newUser.JwtToken = authenticateResponse.JwtToken;
+                    newUser.RefreshToken = authenticateResponse.RefreshToken;
+                    return newUser;
                 }
                 else
                 {
@@ -40,9 +45,14 @@ namespace Models
                 }
 
             }
-            return accessToken;
+            return newUser;
         } 
 
+    }
+
+    public class RefreshTokenRequest
+    {
+        public string Token {get; set;}
     }
 
     public class JwtToken

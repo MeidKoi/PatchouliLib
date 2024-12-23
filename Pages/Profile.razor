@@ -80,20 +80,19 @@
         UserEmail = user.EmailUser;
         UserRole = GetRoleName(user.IdRole);
 
-        var newJwtToken = await Refresher.NewTokenIfNeeded(user.JwtToken);
+        var newUser = await Refresher.NewTokenIfNeeded(user);
 
-        if (newJwtToken is null)
+        if (newUser is null)
         {
             Console.WriteLine("Токен не обновлен");
             await JSRuntime.InvokeVoidAsync("localStorage.clear");
             Navigation.NavigateTo("/signin");
             return;
         }
-        else if (user.JwtToken != newJwtToken)
-        {
-            user.JwtToken = newJwtToken;
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "UserInfo", System.Text.Json.JsonSerializer.Serialize(user));
-        }
+
+        user.JwtToken = newUser.JwtToken;
+        user.RefreshToken = newUser.RefreshToken;    
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "UserInfo", System.Text.Json.JsonSerializer.Serialize(user));
 
         HttpClient client = new HttpClient
         {

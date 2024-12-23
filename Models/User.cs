@@ -31,5 +31,6 @@ namespace Models{
         public string NicknameUser { get; set; } = null!;
         public int IdRole { get; set; }
         public string JwtToken {get; set;} = null!;
+        public string RefreshToken {get; set;} = null!;
     }
 }

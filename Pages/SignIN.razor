@@ -64,13 +64,8 @@
                 Email = Email,
                 Password = Password
             };
-            var request = new HttpRequestMessage(HttpMethod.Post, "Accounts/authenticate");
 
-            request.Content = JsonContent.Create(authenticateRequest);
-
-            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-
-            HttpResponseMessage response = await client.SendAsync(request);
+            var response = await client.PostAsJsonAsync<AuthenticateRequest>($"Accounts/authenticate", authenticateRequest);  
             if (response.IsSuccessStatusCode)
             {
                 AuthenticateResponse? authenticateResponse = await response.Content.ReadFromJsonAsync<AuthenticateResponse>();
@@ -82,22 +77,14 @@
                     user.NicknameUser = authenticateResponse.NicknameUser;
                     user.IdRole = authenticateResponse.IdRole;
                     user.JwtToken = authenticateResponse.JwtToken;
+                    user.RefreshToken = authenticateResponse.RefreshToken;
                     await JSRuntime.InvokeVoidAsync("localStorage.setItem", "UserInfo", System.Text.Json.JsonSerializer.Serialize(user));
                     Navigation.NavigateTo("/profile");
                 }
             }
             else
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                try
-                {
-                    ErrorMessage = System.Text.Json.JsonSerializer.Deserialize<ErrorResponse>(responseContent);
-                }
-                catch
-                {
-                    ErrorMessage = new ErrorResponse { Message = "Email or password incorrect" };
-                }
-                Console.WriteLine(ErrorMessage.Message);
+                ErrorMessage = new ErrorResponse { Message = "Email or password incorrect" };
             }
         }
         finally
