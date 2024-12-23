@@ -1,0 +1,100 @@
+@page "/reset-password"
+@using Models
+@inject UserInfo user
+@inject NavigationManager Navigation
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
+   <div class="col-md-6" style="width: 50vh;">
+       <div class="card shadow" style="background-color: #3a3a52;">
+           <div class="card-body">
+               <h2 class="card-title text-center text-white">Сброс пароля</h2>
+               <div class="mb-3">
+                   <label for="resetToken" class="form-label text-white">Введите токен сброса</label>
+                   <input type="text" class="form-control" id="resetToken" placeholder="Введите токен" @bind="request.Token">
+               </div>
+               <div class="mb-3">
+                   <label for="newPassword" class="form-label text-white">Введите новый пароль</label>
+                   <input type="password" class="form-control" id="newPassword" placeholder="Введите новый пароль" @bind="request.Password">
+               </div>
+                <div class="mb-3">
+                   <label for="newPassword" class="form-label text-white">Подтвердите новый пароль</label>
+                   <input type="password" class="form-control" id="newPassword" placeholder="Введите новый пароль" @bind="request.ConfirmPassword">
+               </div>
+                <div class="text-center mt-3">
+                   <span style="color: red;">Не получили токен? Чтож, хреново быть тобой</span>
+               </div>
+               <div class="d-grid gap-2">
+                   <button @onclick="ResetPassword" disabled="@IsButtonDisabled" class="btn btn-primary btn-custom" style="background-color: #6a5acd; border-color: #6a5acd;">
+                       Сбросить пароль
+                   </button>
+               </div>
+               <div class="text-center mt-3">
+                   <span class="text-white-50">Не получили токен? Чтож, хреново быть тобой</span>
+               </div>
+           </div>
+       </div>
+   </div>
+</div>
+
+@code {
+    public bool IsButtonDisabled = false;
+    ResetPasswordRequest request = new ResetPasswordRequest();
+    public string ErrorMessage = "";
+
+   private async Task ResetPassword()
+   {
+        ErrorMessage = "";
+        IsButtonDisabled = true;
+        if (string.IsNullOrEmpty(request.Token))
+        {
+            ErrorMessage = "Введите токен";
+        }
+        else if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.ConfirmPassword))
+        {
+            ErrorMessage = "Введите пароль";
+        }
+        else if (request.Password != request.ConfirmPassword)
+        {
+            ErrorMessage = "Пароли не совпадают";
+        }
+        if (!string.IsNullOrEmpty(ErrorMessage))
+            return;
+        try
+        {
+
+            HttpClient client = new HttpClient
+            {
+                BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run")
+            };
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", user.JwtToken);
+
+            HttpResponseMessage response = await client.PostAsJsonAsync("Accounts/reset-password", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/signin");
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Ошибка сброса пароля: {errorMessage}");
+            }
+        }
+        finally
+        {
+            IsButtonDisabled = false;
+        }
+    }
+}
+
+<style>
+   .btn-custom {
+       transition: background-color 0.3s ease, transform 0.3s ease;
+   }
+
+   .btn-custom:active {
+       background-color: #4a3f7c !important; /* Более темный цвет при нажатии */
+       transform: scale(0.95); /* Небольшое уменьшение кнопки при нажатии */
+   }
+</style>

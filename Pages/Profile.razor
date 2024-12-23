@@ -70,7 +70,7 @@
             user = JsonSerializer.Deserialize<UserInfo>(json, options);
         }
 
-        if (user is null || user.Equals(new UserInfo()))
+        if (user is null || user.Equals(new UserInfo()) || string.IsNullOrEmpty(user.JwtToken))
         {
             Navigation.NavigateTo("/");
             return;
@@ -79,19 +79,6 @@
         UserName = user.NicknameUser;
         UserEmail = user.EmailUser;
         UserRole = GetRoleName(user.IdRole);
-
-        
-        
-        //var decodedToken = await JSRuntime.InvokeAsync<object>("jwt_decode", user.JwtToken);
-
-        //var TokenContent = System.Text.Json.JsonSerializer.Serialize(decodedToken, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-
-        //var Token = System.Text.Json.JsonSerializer.Deserialize<JwtToken>(TokenContent);
-
-        //var refreshToken = await JSRuntime.InvokeAsync<string>("cookieHelper.getCookie", "refreshToken");
-        //var refreshToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "refreshToken");
-        
-        //Console.WriteLine(refreshToken);
 
         var newJwtToken = await Refresher.NewTokenIfNeeded(user.JwtToken);
 
@@ -113,7 +100,7 @@
             BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/")
         };
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", user.JwtToken);
-        IsVerified = (await client.GetFromJsonAsync<User>($"Accounts/{user.IdUser}")).IsVerified;
+        IsVerified = !(await client.GetFromJsonAsync<User>($"Accounts/{user.IdUser}")).IsVerified;
     } 
 
     private async Task Logout()

@@ -1,32 +1,42 @@
 ﻿@page "/register"
 @inject NavigationManager Navigation
+@using Models
+@using System.Text.RegularExpressions
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2e2e3a;">
     <div class="col-md-6" style="width: 50vh;">
         <div class="card shadow" style="background-color: #3a3a52;">
             <div class="card-body">
                 <h2 class="card-title text-center text-white">Регистрация</h2>
-                <form>
                     <div class="mb-3">
                         <label for="name" class="form-label text-white">Никнейм</label>
-                        <input type="text" class="form-control" id="name" placeholder="Введите ваш никнейм">
+                        <input type="text" class="form-control" id="name" @bind="registerRequest.NicknameUser" placeholder="Введите ваш никнейм">
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label text-white">Email</label>
-                        <input type="email" class="form-control" id="email" placeholder="Введите ваш email">
+                        <input type="email" class="form-control" id="email" @bind="registerRequest.EmailUser" placeholder="Введите ваш email">
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label text-white">Пароль</label>
-                        <input type="password" class="form-control" id="password" placeholder="Введите ваш пароль">
+                        <input type="password" class="form-control" id="password" @bind="registerRequest.PasswordUser" placeholder="Введите ваш пароль">
                     </div>
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label text-white">Подтверждение пароля</label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Подтвердите ваш пароль">
+                        <input type="password" class="form-control" id="confirmPassword" @bind="registerRequest.ConfirmPassword" placeholder="Подтвердите ваш пароль">
                     </div>
+                    <div class="mb-3">
+                        <input type="checkbox" id="terms" name="terms" required @bind="registerRequest.AcceptTerms">
+                        <label for="terms">Я принимаю условия использования</label>
+                    </div>
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                    <div class="mb-3">
+                        <span style="color: red">@ErrorMessage</span>
+                    </div>
+                    }
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary" style="background-color: #6a5acd; border-color: #6a5acd;">Зарегистрироваться</button>
+                        <button type="submit" disabled="@IsButtonDisabled" class="btn btn-primary" style="background-color: #6a5acd; border-color: #6a5acd;" @onclick="RegistrateUser">Зарегистрироваться</button>
                     </div>
-                </form>
                 <div class="text-center mt-3">
                     <a href="/signin" class="text-white-50">Уже есть аккаунт? Войдите</a>
                 </div>
@@ -35,3 +45,51 @@
     </div>
 </div>
 
+@code
+{
+    public bool IsButtonDisabled = false;
+    public RegisterRequest registerRequest = new RegisterRequest();
+    public string ErrorMessage = "";
+    public async Task RegistrateUser()
+    {
+        IsButtonDisabled = true;
+        ErrorMessage = "";
+        if (registerRequest.Equals(new RegisterRequest()))
+            ErrorMessage = "Заполните поля";
+        else if (string.IsNullOrEmpty(registerRequest.NicknameUser))
+            ErrorMessage = "Введите имя пользователя";
+        else if (string.IsNullOrEmpty(registerRequest.EmailUser))
+            ErrorMessage = "Введите почту";
+        else if (!Regex.IsMatch(registerRequest.EmailUser, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            ErrorMessage = "Введите корректный адрес электронной почты";
+        else if (string.IsNullOrEmpty(registerRequest.PasswordUser) || string.IsNullOrEmpty(registerRequest.ConfirmPassword))
+            ErrorMessage = "Введите пароль";
+        else if (registerRequest.PasswordUser != registerRequest.ConfirmPassword)
+            ErrorMessage = "Пароли не совпадают";
+        else if (registerRequest.AcceptTerms == false)
+            ErrorMessage = "Вы должны принять условия использования, иначе...";
+        
+        if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            IsButtonDisabled = false;
+            return;
+        }
+
+        HttpClient client = new HttpClient
+        {
+            BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run")
+        };
+
+        HttpResponseMessage response = await client.PostAsJsonAsync<RegisterRequest>("/Accounts/register", registerRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/verify");
+        }
+        else
+        {
+            ErrorMessage = response.StatusCode.ToString();
+        }
+        IsButtonDisabled = false;
+    }
+
+}   

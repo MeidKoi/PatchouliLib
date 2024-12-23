@@ -28,6 +28,9 @@
                     <span style="color: red;">@ErrorMessage.Message</span>
                 </div>
                 }
+                <div class="text-center mt-3:" style="cursor: pointer;">
+                    <a @onclick="ResetPassword" class="text-white-50">Сбросить пароль</a>
+                </div>
                 <div class="text-center mt-3">
                     <a href="/register" class="text-white-50">Нет аккаунта? Зарегистрируйтесь</a>
                 </div>
@@ -102,6 +105,36 @@
             IsButtonDisabled = false;
         }
     }
+
+    private async Task ResetPassword()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(Email))
+            {
+                ErrorMessage.Message = "Введите почту";
+                return;
+            }
+            HttpClient client = new HttpClient
+            {
+                BaseAddress = new Uri("https://mnogolibapi-f7vitvir.b4a.run/"),
+            };
+
+            HttpResponseMessage response = await client.PostAsJsonAsync<ForgotPasswordRequest>("Accounts/forgot-password", new ForgotPasswordRequest {Email = Email});
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ErrorMessage.Message = "Не удалось отправить код подтверждения. Пожалуйста, попробуйте снова.";
+                return;
+            }
+            Navigation.NavigateTo("/reset-password");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage.Message = $"Произошла ошибка: {ex.Message}";
+        }
+    }
+
 }
 
 <style>
